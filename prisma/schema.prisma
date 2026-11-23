@@ -119,5 +119,3 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
 }
-EOF
-echo done
