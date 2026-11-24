@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -54,10 +55,10 @@ export default function RegisterPage() {
     <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 relative z-10 text-gray-200">
       <div className="glass-strong rounded-2xl p-8 w-full max-w-md border border-cyan-500/30 shadow-[0_0_50px_rgba(0,255,255,0.1)]">
         <div className="flex flex-col items-center mb-6">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-3 shadow-[0_0_20px_rgba(0,255,255,0.3)]" style={{ background: "linear-gradient(135deg, #00ffff 0%, #8b5cf6 100%)" }}>
-            🛡️
+          <div className="mb-3">
+            <BrandLogo size="lg" href="/" showBadge={false} />
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Create Account</h1>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight mt-1">Create Account</h1>
           <p className="text-sm text-cyan-400/80 font-mono mt-1">Join the THREATLY Threat Defense Network</p>
         </div>
 

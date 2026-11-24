@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { BrandLogo } from "@/components/BrandLogo";
 import { ScannerTabs } from "@/components/ScannerTabs";
 import { ThreatRadar, type ThreatEvent } from "@/components/ThreatRadar";
 import {
@@ -138,7 +138,7 @@ export default function DashboardPage() {
       <main className="relative z-10 px-4 md:px-8 lg:px-12 py-8 max-w-7xl mx-auto">
         <header className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center gap-4">
-            <Image src="/logo.png" alt="THREATLY" width={160} height={44} className="h-10 w-auto object-contain" priority />
+            <BrandLogo size="md" href="/" />
             <div className="hidden md:block w-px h-8 bg-cyan-500/20" />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gradient tracking-tight">Welcome, {userData?.name || session?.user?.name || "Agent"}</h1>
