@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -47,9 +48,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 relative z-10 text-gray-200">
       <div className="glass-strong rounded-2xl p-8 w-full max-w-md border border-cyan-500/30 shadow-[0_0_50px_rgba(0,255,255,0.1)]">
         <div className="flex flex-col items-center mb-6">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-3 shadow-[0_0_20px_rgba(0,255,255,0.3)]" style={{ background: "linear-gradient(135deg, #00ffff 0%, #8b5cf6 100%)" }}>
-            🛡️
-          </div>
+          <Image src="/logo.png" alt="THREATLY" width={180} height={50} className="h-12 w-auto object-contain mb-3" priority />
           <h1 className="text-3xl font-extrabold text-white tracking-tight">Agent Sign In</h1>
           <p className="text-sm text-cyan-400/80 font-mono mt-1">Authenticate to THREATLY Command Center</p>
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ScannerTabs } from "@/components/ScannerTabs";
 import { ThreatRadar, type ThreatEvent } from "@/components/ThreatRadar";
 import {
@@ -136,11 +137,15 @@ export default function DashboardPage() {
       <div className="fixed inset-0 z-0 grid-bg" />
       <main className="relative z-10 px-4 md:px-8 lg:px-12 py-8 max-w-7xl mx-auto">
         <header className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-bold text-gradient tracking-tight">Welcome, {userData?.name || session?.user?.name || "Agent"}</h1>
-            <p className="text-cyan-400/70 mt-1 font-mono text-sm">
-              THREATLY Command Center | {userData?.email || session?.user?.email} {userData?.lastLogin ? `• Last login: ${new Date(userData.lastLogin).toLocaleDateString()}` : ""}
-            </p>
+          <div className="flex items-center gap-4">
+            <Image src="/logo.png" alt="THREATLY" width={160} height={44} className="h-10 w-auto object-contain" priority />
+            <div className="hidden md:block w-px h-8 bg-cyan-500/20" />
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gradient tracking-tight">Welcome, {userData?.name || session?.user?.name || "Agent"}</h1>
+              <p className="text-cyan-400/70 mt-0.5 font-mono text-xs">
+                Command Center | {userData?.email || session?.user?.email} {userData?.lastLogin ? `• Last login: ${new Date(userData.lastLogin).toLocaleDateString()}` : ""}
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 px-4 py-2 glass rounded-lg border border-emerald-400/30">

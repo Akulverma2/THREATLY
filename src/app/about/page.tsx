@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ThreatRadar } from "@/components/ThreatRadar";
 
 export default function AboutPage() {
@@ -96,8 +97,7 @@ export default function AboutPage() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-black/90 backdrop-blur-xl border-b border-cyan-500/20" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,255,255,0.4)]" style={{ background: "linear-gradient(135deg, #00ffff 0%, #8b5cf6 100%)" }}>🛡️</div>
-            <span className="text-2xl font-extrabold text-gradient tracking-tight">THREATLY</span>
+            <Image src="/logo.png" alt="THREATLY" width={160} height={44} className="h-10 w-auto object-contain" priority />
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <Link href="/" className="text-gray-300 hover:text-cyan-300 font-medium transition-colors text-sm">Platform</Link>
