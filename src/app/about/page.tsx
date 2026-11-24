@@ -7,9 +7,9 @@ import { ThreatRadar } from "@/components/ThreatRadar";
 export default function AboutPage() {
   const [scrolled, setScrolled] = useState(false);
   const [stats, setStats] = useState({
-    threatsBlocked: 3421,
-    usersProtected: 892,
-    countries: 47,
+    threatsBlocked: 0,
+    usersProtected: 0,
+    countries: 12,
     uptime: "99.99%",
   });
 
@@ -27,9 +27,9 @@ export default function AboutPage() {
         if (!active) return;
         if (d && typeof d.threatsBlocked === "number") {
           setStats({
-            threatsBlocked: d.threatsBlocked || 3421,
-            usersProtected: d.usersProtected || 892,
-            countries: 47,
+            threatsBlocked: d.threatsBlocked,
+            usersProtected: d.usersProtected,
+            countries: Math.max(1, d.usersProtected),
             uptime: "99.99%",
           });
         }
@@ -208,7 +208,7 @@ export default function AboutPage() {
             <p className="mt-3 text-gray-400 text-sm max-w-xl mx-auto">Interactive radar scope rendering threat coordinates, bearing angles, severity vectors, and live detection signals.</p>
           </div>
           <div className="flex justify-center overflow-hidden py-4">
-            <ThreatRadar size={450} showSimulated={true} title="GLOBAL THREAT RADAR" />
+            <ThreatRadar size={450} title="GLOBAL THREAT RADAR" />
           </div>
         </div>
       </section>

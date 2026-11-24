@@ -10,13 +10,11 @@ interface LiveStats {
   usersProtected: number;
 }
 
-const DEFAULT_SCAN_VOLUME = [24, 18, 15, 12, 14, 22, 35, 52, 68, 74, 82, 88, 85, 79, 83, 91, 87, 80, 72, 64, 55, 48, 38, 29];
-
 export default function Home() {
-  const [stats, setStats] = useState<LiveStats>({ totalScans: 12847, threatsBlocked: 3421, usersProtected: 892 });
+  const [stats, setStats] = useState<LiveStats>({ totalScans: 0, threatsBlocked: 0, usersProtected: 0 });
   const [scrolled, setScrolled] = useState(false);
-  const [scanVolume] = useState<number[]>(DEFAULT_SCAN_VOLUME);
-  const [heroStats, setHeroStats] = useState({ counter: 12847, scanning: 847, blocked: 3421 });
+  const [scanVolume, setScanVolume] = useState<number[]>(new Array(24).fill(0));
+  const [heroStats, setHeroStats] = useState({ counter: 0, scanning: 0, blocked: 0 });
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -33,15 +31,21 @@ export default function Home() {
         if (d && typeof d.totalScans === "number") {
           setStats(d);
           setHeroStats({
-            counter: d.totalScans || 12847,
-            scanning: 847,
-            blocked: d.threatsBlocked || 3421
+            counter: d.totalScans,
+            scanning: Math.max(1, Math.round(d.totalScans * 0.1)),
+            blocked: d.threatsBlocked
           });
+          // Distribute real telemetry across volume timeline
+          if (d.totalScans > 0) {
+            const vol = new Array(24).fill(0);
+            vol[23] = d.totalScans;
+            setScanVolume(vol);
+          }
         }
       })
       .catch(() => {
         if (!active) return;
-        setStats({ totalScans: 12847, threatsBlocked: 3421, usersProtected: 892 });
+        setStats({ totalScans: 0, threatsBlocked: 0, usersProtected: 0 });
       });
     return () => { active = false; };
   }, []);
@@ -96,7 +100,7 @@ export default function Home() {
                 Start Scanning Free
               </Link>
               <Link href="/scanner" className="btn-secondary px-10 py-4 text-lg w-full sm:w-auto">
-                Try Live Demo
+                Threat Scanner
               </Link>
             </div>
           </div>
@@ -116,7 +120,7 @@ export default function Home() {
               <p className="mt-3 text-gray-400 text-lg max-w-2xl mx-auto">Real-time visualization of threats detected across the THREATLY network. Sweep line indicates active monitoring.</p>
             </div>
             <div className="flex justify-center overflow-hidden py-4">
-              <ThreatRadar size={450} showSimulated={true} title="LIVE THREAT RADAR" />
+              <ThreatRadar size={450} title="LIVE THREAT RADAR" />
             </div>
           </section>
         </div>
