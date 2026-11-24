@@ -44,19 +44,20 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+    if (status === "authenticated") {
+      Promise.all([
+        fetch("/api/user/me").then(r => r.ok ? r.json() : null),
+        fetch("/api/user/scans").then(r => r.ok ? r.json() : []),
+      ]).then(([u, s]) => {
+        if (u) setUserData(u);
+        setScans(Array.isArray(s) ? s : s?.scans || []);
+      }).catch(() => {}).finally(() => setLoading(false));
+    }
   }, [status, router]);
-
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    Promise.all([
-      fetch("/api/user/me").then(r => r.json()),
-      fetch("/api/user/scans").then(r => r.json()),
-    ]).then(([u, s]) => {
-      setUserData(u);
-      setScans(Array.isArray(s) ? s : s.scans || []);
-    }).catch(() => {}).finally(() => setLoading(false));
-  }, [session]);
 
   const filteredScans = useMemo(() => scans.filter(s => {
     const q = searchQuery.toLowerCase();

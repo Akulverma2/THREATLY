@@ -1,12 +1,10 @@
 "use client";
 
-import { signIn, getSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,15 +31,12 @@ export default function LoginPage() {
       }
 
       setSuccess(true);
-      try {
-        const session = await getSession();
-        const destination = session?.user?.role === "ADMIN" ? "/admin" : "/dashboard";
-        router.push(destination);
-        router.refresh();
-      } catch {
-        router.push("/dashboard");
-        router.refresh();
-      }
+      setLoading(false);
+
+      // Force full document navigation to /dashboard so newly minted session cookies
+      // are cleanly transmitted in the HTTP request to the Next.js middleware and server.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign("/dashboard");
     } catch {
       setLoading(false);
       setError("An unexpected authentication error occurred. Please try again.");
@@ -67,9 +62,14 @@ export default function LoginPage() {
         )}
 
         {success && (
-          <div className="mb-6 p-3.5 bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 rounded-lg text-sm flex items-start gap-2.5" role="status">
-            <span className="text-base leading-none mt-0.5">✓</span>
-            <span>Authentication successful. Redirecting to workspace...</span>
+          <div className="mb-6 p-3.5 bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 rounded-lg text-sm flex flex-col gap-2" role="status">
+            <div className="flex items-center gap-2">
+              <span className="text-base leading-none">✓</span>
+              <span>Authentication successful! Entering Command Center...</span>
+            </div>
+            <a href="/dashboard" className="text-xs text-cyan-300 underline font-semibold hover:text-cyan-200">
+              Click here to proceed immediately →
+            </a>
           </div>
         )}
 
