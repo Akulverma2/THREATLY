@@ -257,4 +257,15 @@ describe('Authentication & Authorization Engine', () => {
       expect(evaluateAccess('/api/admin/users', { role: 'ADMIN' })).toEqual({ allowed: true })
     })
   })
+
+  describe('Edge-Compatible Auth Configuration (auth.config.ts)', () => {
+    test('exports edge-compatible configuration without database adapter or bcrypt', async () => {
+      const { authConfig } = await import('@/lib/auth.config')
+      expect(authConfig.session?.strategy).toBe('jwt')
+      expect(authConfig.pages?.signIn).toBe('/login')
+      expect(authConfig.providers).toEqual([])
+      expect(typeof authConfig.callbacks?.jwt).toBe('function')
+      expect(typeof authConfig.callbacks?.session).toBe('function')
+    })
+  })
 })

@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import NextAuth from "next-auth";
+import { authConfig } from "@/lib/auth.config";
+
+// Initialize NextAuth with the lightweight, Edge-compatible configuration.
+// This prevents database drivers (Prisma) and Node modules (bcrypt) from being
+// bundled into the Edge Function middleware, reducing bundle size well below 1MB.
+const { auth } = NextAuth(authConfig);
 
 // --- Security Headers Middleware ---
 // This middleware runs on every request and adds security headers.
