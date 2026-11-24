@@ -21,6 +21,8 @@ interface ScanRow {
   threatCategory: string | null;
   confidence: number;
   createdAt: string;
+  reasons?: string[];
+  recommendedAction?: string;
 }
 
 interface UserData {
@@ -177,6 +179,66 @@ export default function DashboardPage() {
                 <StatCard title="Suspicious" value={stats.suspicious} icon="⚠️" color="amber" />
                 <StatCard title="Malicious" value={stats.malicious} icon="🚨" color="red" />
               </div>
+
+              {/* Recent Activity */}
+              {scans.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold text-cyan-300 flex items-center gap-2">📋 Recent Activity</h3>
+                    <button onClick={() => setActiveTab("history")} className="text-xs text-cyan-400 hover:text-cyan-200 font-mono transition-colors">
+                      View all →
+                    </button>
+                  </div>
+                  <div className="glass-strong rounded-2xl overflow-hidden border border-cyan-500/20">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-white/5">
+                            <th className="text-left px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Target</th>
+                            <th className="text-left px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Type</th>
+                            <th className="text-left px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Risk</th>
+                            <th className="text-left px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Classification</th>
+                            <th className="text-left px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Time</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {scans.slice(0, 5).map((s) => {
+                            const clr = classColors[s.classification] || "#10b981";
+                            return (
+                              <tr key={s.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                                <td className="px-4 py-3 font-mono text-gray-300 max-w-[200px] truncate text-xs">{s.input}</td>
+                                <td className="px-4 py-3">
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">{s.type}</span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-20 h-1.5 rounded-full bg-gray-800 overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full"
+                                        style={{ width: `${s.riskScore}%`, background: clr, boxShadow: `0 0 6px ${clr}` }}
+                                      />
+                                    </div>
+                                    <span className="text-xs font-bold tabular-nums" style={{ color: clr }}>{s.riskScore}</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold border" style={{ color: clr, borderColor: `${clr}60`, background: `${clr}18` }}>
+                                    {s.classification}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap font-mono">
+                                  {new Date(s.createdAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <ScannerTabs />
             </motion.div>
           )}

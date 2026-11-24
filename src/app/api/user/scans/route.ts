@@ -8,7 +8,7 @@ export async function GET() {
   const scans = await prisma.scan.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
-    select: { id: true, input: true, type: true, riskScore: true, classification: true, threatCategory: true, confidence: true, createdAt: true },
+    select: { id: true, input: true, type: true, riskScore: true, classification: true, threatCategory: true, confidence: true, createdAt: true, reasons: true, recommendedAction: true },
   });
   return NextResponse.json({ scans });
 }
