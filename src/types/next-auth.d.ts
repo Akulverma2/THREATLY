@@ -21,4 +21,3 @@ declare module "next-auth/jwt" {
     role?: "USER" | "ADMIN";
   }
 }
-EOF
