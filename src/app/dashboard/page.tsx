@@ -126,29 +126,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-black text-gray-100">
-      <style jsx global>{`
-        .glass { background: rgba(10, 15, 30, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(0, 255, 255, 0.15); box-shadow: 0 0 40px -10px rgba(0, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
-        .glass-strong { background: rgba(10, 15, 30, 0.95); backdrop-filter: blur(30px); border: 1px solid rgba(0, 255, 255, 0.25); box-shadow: 0 0 60px -15px rgba(0, 255, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
-        .text-gradient { background: linear-gradient(135deg, #00ffff 0%, #8b5cf6 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .btn-primary { @apply px-6 py-3 rounded-lg bg-cyan-500/20 border border-cyan-400 text-cyan-300 font-bold transition-all hover:bg-cyan-500/40 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] active:scale-[0.98]; }
-        .btn-secondary { @apply px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-400 text-purple-300 font-medium transition-all hover:bg-purple-500/40; }
-        .input-cyber { @apply w-full px-4 py-3 rounded-lg bg-black/40 border border-cyan-500/40 text-gray-100 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all placeholder:text-gray-500; }
-        .tab-btn { @apply px-5 py-2.5 rounded-lg font-bold text-sm transition-all relative overflow-hidden; }
-        .tab-btn-active { @apply bg-cyan-500/20 text-cyan-300 border border-cyan-400 shadow-[0_0_15px_rgba(0,255,255,0.2)]; }
-        .tab-btn-inactive { @apply text-gray-500 hover:text-gray-200 hover:bg-white/5; }
-        .stat-card { @apply glass-strong rounded-2xl p-6 relative overflow-hidden; }
-        .chart-container { @apply glass-strong rounded-2xl p-6; }
-        .data-table { @apply w-full text-sm; }
-        .data-table th { @apply text-left py-3 px-4 text-gray-400 font-bold uppercase tracking-wider border-b border-cyan-500/30; }
-        .data-table td { @apply py-3 px-4 border-b border-gray-800/50; }
-        .data-table tr { @apply hover:bg-cyan-950/20 transition-colors; }
-        .badge { @apply px-3 py-1 rounded-full text-xs font-bold border; }
-        .grid-bg { position: fixed; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px); background-size: 60px 60px; z-index: 0; }
-        .recharts-cartesian-grid-horizontal line, .recharts-cartesian-grid-vertical line { stroke: rgba(0, 255, 255, 0.08) !important; }
-        .recharts-xaxis-tick text, .recharts-yaxis-tick text { fill: #898781 !important; font-size: 11px !important; }
-        .recharts-axis line { stroke: #2c2c2a !important; }
-      `}</style>
-
       <div className="fixed inset-0 z-0 grid-bg" />
       <main className="relative z-10 px-4 md:px-8 lg:px-12 py-8 max-w-7xl mx-auto">
         <motion.header initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">

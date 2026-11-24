@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
@@ -13,7 +12,6 @@ const credentialsSchema = z.object({
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(prisma),
   providers: [
     Credentials({
       name: "Credentials",
@@ -29,7 +27,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user || user.status !== "ACTIVE") return null;
         const ok = await bcrypt.compare(password, user.passwordHash);
         if (!ok) return null;
-        await prisma.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } });
+        try {
+          await prisma.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } });
+        } catch {
+          // Non-blocking: audit timestamp failure does not block login
+        }
         return { id: user.id, name: user.name, email: user.email, role: user.role };
       },
     }),

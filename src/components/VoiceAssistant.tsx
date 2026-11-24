@@ -11,21 +11,25 @@ export function VoiceAssistant({ lastResult }: VoiceAssistantProps) {
   const [open, setOpen] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [listening, setListening] = useState(false);
-  const [muted, setMuted] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        return localStorage.getItem("threatly-voice-muted") === "true";
-      } catch {
-        return false;
-      }
-    }
-    return false;
-  });
+  const [muted, setMuted] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [question, setQuestion] = useState("");
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<string>("");
   const utterRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        if (typeof window !== "undefined") {
+          setMuted(localStorage.getItem("threatly-voice-muted") === "true");
+        }
+      } catch {
+        // Ignore storage access restrictions
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;

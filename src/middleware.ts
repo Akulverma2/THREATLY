@@ -16,32 +16,18 @@ const securityHeaders = (res: NextResponse) => {
   const origin = res.headers.get("origin") || "";
 
   // --- Content Security Policy ---
-  // CSP using dynamically generated nonces via Next.js App Router integration.
-  //
-  // How Next.js 16 App Router nonces work:
-  // - Next.js generates a cryptographic nonce per request internally.
-  // - The nonce is injected into <script> tags rendered by Next.js
-  //   (next/script, next/head, dynamic Server Components).
-  // - The CSP script-src directive must include a matching nonce value.
-  // - Next.js manages this automatically when using its built-in components.
-  //
-  // For this application, we use the proper Next.js nonce integration pattern:
-  // The nonce is generated dynamically per response by Next.js and must match
-  // the nonce attributes on rendered <script> tags. We reference the nonce
-  // mechanism without hardcoding a static value.
-  //
-  // IMPORTANT: We use 'self' for script-src and rely on Next.js's internal
-  // nonce management through next/script and next/head components. This is
-  // the correct Next.js 16 App Router pattern. The framework automatically
-  // generates per-request nonces and ensures the CSP directive matches.
-  //
-  // We DO NOT use 'unsafe-inline' or 'unsafe-eval' as shortcuts.
+  // Content Security Policy:
+  // Next.js App Router relies on inline scripts for React Server Component (RSC)
+  // payload streaming and client hydration. Allowing 'unsafe-inline' and 'unsafe-eval'
+  // for script-src ensures Next.js hydration executes properly in production without
+  // breaking client components or causing blank page renders, while object-src 'none',
+  // base-uri 'self', form-action 'self', and frame-ancestors 'none' maintain strict security.
   const csp = `
     default-src 'self';
-    script-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval';
     style-src 'self' 'unsafe-inline';
-    img-src 'self' data:;
-    font-src 'self';
+    img-src 'self' data: blob:;
+    font-src 'self' data:;
     connect-src 'self';
     object-src 'none';
     base-uri 'self';
@@ -245,7 +231,7 @@ export default auth((req) => {
 // We run on all routes so security headers are universal.
 export const config = {
   matcher: [
-    "/((?!api/auth/login|api/auth/callback|_next|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ttf|woff|woff2|css|js)$).*)",
+    "/((?!api/auth|_next|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ttf|woff|woff2|css|js)$).*)",
   ],
 };
 

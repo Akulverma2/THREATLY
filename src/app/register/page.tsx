@@ -44,7 +44,7 @@ export default function RegisterPage() {
       setSuccess(true);
       setTimeout(() => {
         router.push("/login");
-      }, 1500);
+      }, 1200);
     } catch {
       setLoading(false);
       setError("Network or server error during registration.");
@@ -52,8 +52,8 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 relative z-10">
-      <div className="glass rounded-2xl p-8 w-full max-w-md border border-cyan-500/30 shadow-[0_0_50px_rgba(0,255,255,0.1)]">
+    <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-12 relative z-10 text-gray-200">
+      <div className="glass-strong rounded-2xl p-8 w-full max-w-md border border-cyan-500/30 shadow-[0_0_50px_rgba(0,255,255,0.1)]">
         <div className="flex flex-col items-center mb-6">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-3 shadow-[0_0_20px_rgba(0,255,255,0.3)]" style={{ background: "linear-gradient(135deg, #00ffff 0%, #8b5cf6 100%)" }}>
             🛡️
@@ -70,9 +70,14 @@ export default function RegisterPage() {
         )}
 
         {success && (
-          <div className="mb-6 p-3.5 bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 rounded-lg text-sm flex items-start gap-2.5" role="status">
-            <span className="text-base leading-none mt-0.5">✓</span>
-            <span>Account created successfully! Redirecting to sign in...</span>
+          <div className="mb-6 p-3.5 bg-emerald-950/60 border border-emerald-500/60 text-emerald-300 rounded-lg text-sm flex flex-col gap-2" role="status">
+            <div className="flex items-center gap-2">
+              <span className="text-base leading-none">✓</span>
+              <span>Account created successfully! Redirecting to sign in...</span>
+            </div>
+            <Link href="/login" className="text-xs text-cyan-300 underline font-semibold hover:text-cyan-200">
+              Click here if not redirected automatically →
+            </Link>
           </div>
         )}
 

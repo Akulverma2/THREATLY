@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { ThreatRadar } from "@/components/ThreatRadar";
 
 export default function AboutPage() {
@@ -26,12 +25,14 @@ export default function AboutPage() {
       .then((r) => r.json())
       .then((d) => {
         if (!active) return;
-        setStats({
-          threatsBlocked: d.threatsBlocked || 3421,
-          usersProtected: d.usersProtected || 892,
-          countries: 47,
-          uptime: "99.99%",
-        });
+        if (d && typeof d.threatsBlocked === "number") {
+          setStats({
+            threatsBlocked: d.threatsBlocked || 3421,
+            usersProtected: d.usersProtected || 892,
+            countries: 47,
+            uptime: "99.99%",
+          });
+        }
       })
       .catch(() => {});
     return () => { active = false; };
@@ -88,22 +89,14 @@ export default function AboutPage() {
   ];
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden">
-      <style jsx global>{`
-        .glass { background: rgba(10, 15, 30, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(0, 255, 255, 0.15); box-shadow: 0 0 40px -10px rgba(0, 255, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
-        .glass-strong { background: rgba(10, 15, 30, 0.95); backdrop-filter: blur(30px); border: 1px solid rgba(0, 255, 255, 0.25); box-shadow: 0 0 60px -15px rgba(0, 255, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
-        .text-gradient { background: linear-gradient(135deg, #00ffff 0%, #8b5cf6 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .btn-primary { @apply px-6 py-3 rounded-lg bg-cyan-500/20 border border-cyan-400 text-cyan-300 font-bold transition-all hover:bg-cyan-500/40 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] active:scale-[0.98]; }
-        .btn-secondary { @apply px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-400 text-purple-300 font-medium transition-all hover:bg-purple-500/40; }
-        .grid-bg { position: fixed; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(0,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.03) 1px, transparent 1px); background-size: 60px 60px; z-index: 0; }
-      `}</style>
-
+    <main className="relative min-h-screen overflow-x-hidden text-gray-200">
       <div className="fixed inset-0 z-0 grid-bg" />
 
+      {/* Navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-black/90 backdrop-blur-xl border-b border-cyan-500/20" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-12 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: "linear-gradient(135deg, #00ffff 0%, #8b5cf6 100%)" }}>🛡️</div>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,255,255,0.4)]" style={{ background: "linear-gradient(135deg, #00ffff 0%, #8b5cf6 100%)" }}>🛡️</div>
             <span className="text-2xl font-extrabold text-gradient tracking-tight">THREATLY</span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
@@ -113,7 +106,7 @@ export default function AboutPage() {
             <Link href="#contact" className="text-gray-300 hover:text-cyan-300 font-medium transition-colors text-sm">Contact</Link>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="btn-secondary text-sm hidden sm:block">Sign In</Link>
+            <Link href="/login" className="btn-secondary text-sm hidden sm:inline-flex">Sign In</Link>
             <Link href="/register" className="btn-primary text-sm">Get Started Free</Link>
           </div>
         </div>
@@ -122,7 +115,7 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="relative z-10 min-h-[60vh] flex items-center justify-center px-4 md:px-8 lg:px-12 pt-28 pb-16">
         <div className="w-full max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="text-center mb-12">
+          <div className="text-center mb-12">
             <span className="inline-block px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-sm font-mono mb-6">About THREATLY</span>
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gradient leading-tight">
               Explainable Cybersecurity Intelligence
@@ -131,14 +124,14 @@ export default function AboutPage() {
               Real-time threat detection for URLs, QR codes, messages, and emails.
               Combining multi-layer heuristics with explainable verdicts.
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <StatCard icon="🚫" value={stats.threatsBlocked.toLocaleString()} label="Threats Blocked" color="red" />
             <StatCard icon="👥" value={stats.usersProtected.toLocaleString()} label="Protected Sessions" color="emerald" />
             <StatCard icon="🌍" value={String(stats.countries)} label="Monitored TLDs" color="cyan" />
             <StatCard icon="⏱️" value={stats.uptime} label="Service Target" color="purple" />
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -214,7 +207,7 @@ export default function AboutPage() {
             <h2 className="mt-3 text-4xl font-extrabold text-gradient">Real-Time Threat Visualizer</h2>
             <p className="mt-3 text-gray-400 text-sm max-w-xl mx-auto">Interactive radar scope rendering threat coordinates, bearing angles, severity vectors, and live detection signals.</p>
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center overflow-hidden py-4">
             <ThreatRadar size={450} showSimulated={true} title="GLOBAL THREAT RADAR" />
           </div>
         </div>
