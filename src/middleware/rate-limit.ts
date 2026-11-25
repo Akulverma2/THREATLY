@@ -108,6 +108,15 @@ export function scanRateLimit(req: Request): NextResponse | null {
   return _scanLimiter(req);
 }
 
+const _resetLimiter = rateLimit({
+  windowMs: Number(process.env.RATE_LIMIT_RESET_WINDOW_MS) || 15 * 60 * 1000,
+  max: Number(process.env.RATE_LIMIT_RESET_MAX) || 10,
+});
+
+export function resetPasswordRateLimit(req: Request): NextResponse | null {
+  return _resetLimiter(req);
+}
+
 export function authRateLimit<T>(handlers: T): T {
   const loginLimiter = rateLimit({
     windowMs: Number(process.env.RATE_LIMIT_LOGIN_WINDOW_MS) || 15 * 60 * 1000,

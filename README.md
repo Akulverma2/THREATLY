@@ -39,6 +39,7 @@
 | 📊 **Analytics & Telemetry** | 30-day scan trend chart, classification doughnut, scan-type distribution, top threat categories — all real data |
 | 📄 **PDF Security Reports** | One-click export of professional branded PDF reports with all evidence, timestamps, and recommendations |
 | 🛡️ **Role-Based Auth** | Auth.js JWT sessions, bcrypt passwords, RBAC (user / admin), protected routes via middleware |
+| 🔑 **Password Reset Engine** | Crypto-secure authorization tokens, rate-limited request/verification endpoints, audit logging, direct recovery portal |
 | 🔒 **Security Headers** | HSTS, CSP, X-Frame-Options, X-Content-Type-Options — hardened for production |
 
 ---
