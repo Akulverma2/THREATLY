@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     }
     return res;
   }
-  const result = analyzeQr(parsed.data.imageBase64);
+  const result = await analyzeQr(parsed.data.imageBase64);
   const scan = await prisma.scan.create({
     data: { userId: session.user.id, type: "QR", input: "[QR image]", riskScore: result.riskScore, classification: result.classification, threatCategory: result.threatCategory, confidence: result.confidence, reasons: result.reasons, recommendedAction: result.recommendedAction },
   });
