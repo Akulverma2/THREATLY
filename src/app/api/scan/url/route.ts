@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { analyzeUrl } from "@/lib/detection/url";
+import { analyzeUrlAsync } from "@/lib/detection/url";
 import { scanRateLimit } from "@/middleware/rate-limit";
 import { z } from "zod";
 
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     }
     return res;
   }
-  const result = analyzeUrl(parsed.data.url);
+  const result = await analyzeUrlAsync(parsed.data.url);
   const scan = await prisma.scan.create({
     data: {
       userId: session.user.id,

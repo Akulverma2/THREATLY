@@ -28,6 +28,10 @@ export interface DetectionResult {
   threatIntelSources: string[];
   recommendedAction: string;
   timestamp: string;
+  domainAge?: string | null;
+  domainReputation?: string | null;
+  redirectChain?: string[];
+  suspiciousIndicators?: string[];
 }
 
 export function classifyScore(score: number): Classification {
@@ -73,5 +77,9 @@ export function makeResult(partial: Partial<DetectionResult> & { riskScore: numb
     threatIntelSources: partial.threatIntelSources ?? [],
     recommendedAction: partial.recommendedAction ?? recommendedAction(partial.classification),
     timestamp: new Date().toISOString(),
+    domainAge: partial.domainAge ?? null,
+    domainReputation: partial.domainReputation ?? null,
+    redirectChain: partial.redirectChain ?? [],
+    suspiciousIndicators: partial.suspiciousIndicators ?? [],
   };
 }
