@@ -221,114 +221,402 @@ function ExplainableDetection({ result }: { result: ScanResult }) {
   );
 }
 
-// ─── PDF Export ───────────────────────────────────────────────────────────────
+// ─── High-Contrast Executive Cybersecurity PDF Export ────────────────────────
 async function exportPDF(result: ScanResult, scanType: string, input: string) {
   const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const W = 210;
-  let y = 15;
+  const H = 297;
+  const M = 14; // margin
+  const contentW = W - M * 2; // 182mm
 
-  const addLine = (text: string, size = 10, bold = false, color: [number, number, number] = [220, 220, 220]) => {
-    doc.setFontSize(size);
-    doc.setFont("helvetica", bold ? "bold" : "normal");
-    doc.setTextColor(...color);
-    const lines = doc.splitTextToSize(text, W - 30);
-    doc.text(lines, 15, y);
-    y += lines.length * (size * 0.45) + 2;
-    if (y > 270) { doc.addPage(); y = 15; }
-  };
+  // Colors
+  const bgDark: [number, number, number] = [10, 15, 28];
+  const cardBg: [number, number, number] = [17, 24, 43];
+  const cardBorder: [number, number, number] = [30, 48, 77];
+  const cyanPrimary: [number, number, number] = [0, 240, 255];
+  const textWhite: [number, number, number] = [255, 255, 255];
+  const textMuted: [number, number, number] = [203, 213, 225];
+  const textSubtle: [number, number, number] = [148, 163, 184];
 
-  const addHRule = () => {
-    doc.setDrawColor(0, 180, 180);
-    doc.line(15, y, W - 15, y);
-    y += 4;
-  };
-
-  // Header
-  doc.setFillColor(10, 15, 30);
-  doc.rect(0, 0, W, 40, "F");
-  doc.setFontSize(22);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(0, 255, 255);
-  doc.text("THREATLY", 15, 18);
-  doc.setFontSize(10);
-  doc.setTextColor(100, 160, 180);
-  doc.text("Security Analysis Report", 15, 26);
-  doc.text(`Generated: ${new Date().toLocaleString()}`, 15, 33);
-  y = 50;
-
-  // Classification badge
   const clsColor: [number, number, number] =
-    result.classification === "SAFE" ? [16, 185, 129] :
-    result.classification === "SUSPICIOUS" ? [245, 158, 11] :
-    [239, 68, 68];
-  addLine("SCAN SUMMARY", 12, true, [0, 220, 220]);
-  addHRule();
-  addLine(`Classification: ${result.classification}`, 14, true, clsColor);
-  addLine(`Risk Score: ${result.riskScore}/100`, 12, true, clsColor);
-  addLine(`Confidence: ${(result.confidence * 100).toFixed(0)}%`, 10);
-  addLine(`Scan Type: ${scanType}`, 10);
-  addLine(`Input: ${input.slice(0, 120)}${input.length > 120 ? "..." : ""}`, 10);
-  addLine(`Threat Category: ${result.threatCategory ?? "None"}`, 10);
-  y += 4;
+    result.classification === "SAFE"
+      ? [16, 185, 129] // Emerald green
+      : result.classification === "SUSPICIOUS"
+      ? [245, 158, 11] // Amber orange
+      : [239, 68, 68]; // Crimson red
 
-  // Recommended Action
-  addLine("RECOMMENDED ACTION", 12, true, [0, 220, 220]);
-  addHRule();
-  addLine(result.recommendedAction, 10, false, [200, 240, 240]);
-  y += 4;
+  const clsBg: [number, number, number] =
+    result.classification === "SAFE"
+      ? [6, 78, 59]
+      : result.classification === "SUSPICIOUS"
+      ? [120, 53, 15]
+      : [127, 29, 29];
 
-  // Explainable Detection
-  if (result.indicators?.length) {
-    addLine("SECURITY INDICATORS", 12, true, [0, 220, 220]);
-    addHRule();
-    result.indicators.forEach((ind) => {
-      const c: [number, number, number] =
-        ind.severity === "CRITICAL" || ind.severity === "HIGH" ? [239, 68, 68] :
-        ind.severity === "MEDIUM" ? [245, 158, 11] : [150, 150, 150];
-      addLine(`[${ind.severity}] ${ind.name}`, 10, true, c);
-      addLine(ind.description, 9, false, [180, 180, 180]);
-      y += 1;
-    });
-    y += 2;
+  let currentPage = 1;
+
+  function renderPageTemplate(isFirstPage: boolean) {
+    // 1. Full Page Dark Background
+    doc.setFillColor(...bgDark);
+    doc.rect(0, 0, W, H, "F");
+
+    // 2. Top Header
+    if (isFirstPage) {
+      // Top Neon Cyan Accent Strip
+      doc.setFillColor(...cyanPrimary);
+      doc.rect(0, 0, W, 2.5, "F");
+
+      // Header Container
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 2.5, W, 34, "F");
+      doc.setDrawColor(...cardBorder);
+      doc.setLineWidth(0.4);
+      doc.line(0, 36.5, W, 36.5);
+
+      // Logo & Title
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...cyanPrimary);
+      doc.text("THREATLY", M, 16);
+
+      doc.setFontSize(7.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(147, 197, 253);
+      doc.text("UNIFIED CYBERSECURITY THREAT INTELLIGENCE PLATFORM", M, 22);
+
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...textSubtle);
+      doc.text("SECURITY ASSESSMENT DOSSIER • AUTONOMOUS HEURISTIC AUDIT", M, 27);
+
+      // Top Right Meta Info
+      const reportId = `TL-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 899 + 100)}`;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...textWhite);
+      doc.text("CONFIDENTIAL SECURITY REPORT", W - M, 14, { align: "right" });
+
+      doc.setFontSize(7.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...textSubtle);
+      doc.text(`Report ID: ${reportId}`, W - M, 19, { align: "right" });
+      doc.text(`Generated: ${new Date().toLocaleString()}`, W - M, 24, { align: "right" });
+
+      // Security Pill
+      doc.setFillColor(23, 37, 84);
+      doc.roundedRect(W - M - 40, 27, 40, 5, 1, 1, "F");
+      doc.setFontSize(6.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(147, 197, 253);
+      doc.text("TLP:CLEAR // AUDIT LOG", W - M - 20, 30.5, { align: "center" });
+    } else {
+      // Sub-page compact header
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, W, 14, "F");
+      doc.setDrawColor(...cardBorder);
+      doc.line(0, 14, W, 14);
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...cyanPrimary);
+      doc.text("THREATLY — Security Analysis Report (Cont.)", M, 9);
+    }
+
+    // 3. Footer on every page
+    doc.setDrawColor(...cardBorder);
+    doc.setLineWidth(0.3);
+    doc.line(M, 286, W - M, 286);
+
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...textSubtle);
+    doc.text("THREATLY Security Engine • threatly-tawny.vercel.app", M, 291);
+    doc.text(`Page ${currentPage}`, W - M, 291, { align: "right" });
   }
 
-  // Detection Findings
-  if (result.reasons.length) {
-    addLine("DETECTION FINDINGS", 12, true, [0, 220, 220]);
-    addHRule();
-    result.reasons.forEach((r) => addLine(`• ${r}`, 9));
-    y += 4;
+  // Draw Page 1
+  renderPageTemplate(true);
+  let y = 43;
+
+  function checkPageBreak(requiredHeight: number) {
+    if (y + requiredHeight > 275) {
+      doc.addPage();
+      currentPage++;
+      renderPageTemplate(false);
+      y = 20;
+    }
   }
 
-  // Intel
-  if (result.domainReputation || result.domainAge) {
-    addLine("THREAT INTELLIGENCE", 12, true, [0, 220, 220]);
-    addHRule();
-    if (result.domainReputation) addLine(`Domain Reputation: ${result.domainReputation}`, 9);
-    if (result.domainAge) addLine(`Domain Age: ${result.domainAge}`, 9);
-    y += 4;
-  }
+  // ─── CARD 1: Executive Verdict & Risk Score Summary ───────────────
+  const summaryCardHeight = 44;
+  checkPageBreak(summaryCardHeight);
 
-  // Checks
-  if (result.checksPerformed?.length) {
-    addLine("CHECKS PERFORMED", 12, true, [0, 220, 220]);
-    addHRule();
-    addLine(result.checksPerformed.join(", "), 9, false, [100, 220, 150]);
-    y += 2;
-  }
-  if (result.checksUnavailable?.length) {
-    addLine("CHECKS UNAVAILABLE", 11, true, [180, 130, 50]);
-    addLine(result.checksUnavailable.join(", "), 9, false, [160, 120, 60]);
-    y += 2;
-  }
+  doc.setFillColor(...cardBg);
+  doc.setDrawColor(...cardBorder);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(M, y, contentW, summaryCardHeight, 2.5, 2.5, "FD");
 
-  // Footer
+  // Left Column: Verdict Badge & Score Bar
+  // Verdict Pill
+  doc.setFillColor(...clsBg);
+  doc.setDrawColor(...clsColor);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(M + 6, y + 6, 48, 8, 2, 2, "FD");
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...textWhite);
+  doc.text(result.classification, M + 30, y + 11.5, { align: "center" });
+
+  // Score Numeric
+  doc.setFontSize(18);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...clsColor);
+  doc.text(`${result.riskScore}`, M + 6, y + 25);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...textSubtle);
+  doc.text("/ 100 Risk Score", M + 24, y + 25);
+
+  // Score Progress Bar
+  const meterW = 76;
+  const meterH = 3.5;
+  const meterX = M + 6;
+  const meterY = y + 28;
+  doc.setFillColor(30, 41, 59); // Track
+  doc.roundedRect(meterX, meterY, meterW, meterH, 1, 1, "F");
+
+  const fillW = Math.max(2, (Math.min(100, Math.max(0, result.riskScore)) / 100) * meterW);
+  doc.setFillColor(...clsColor);
+  doc.roundedRect(meterX, meterY, fillW, meterH, 1, 1, "F");
+
+  // Meter Labels
+  doc.setFontSize(6);
+  doc.setTextColor(...textSubtle);
+  doc.text("0 (SAFE)", meterX, meterY + 7);
+  doc.text("50", meterX + meterW / 2, meterY + 7, { align: "center" });
+  doc.text("100 (MALICIOUS)", meterX + meterW, meterY + 7, { align: "right" });
+
+  // Divider inside summary card
+  doc.setDrawColor(25, 38, 64);
+  doc.line(M + 92, y + 5, M + 92, y + summaryCardHeight - 5);
+
+  // Right Column: Target & Telemetry Metrics
+  const rightX = M + 98;
+  const colW = contentW - 104;
+
+  // Scan Target (formatted, wrapped)
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...cyanPrimary);
+  doc.text("SCAN TARGET INPUT:", rightX, y + 9);
+
   doc.setFontSize(8);
-  doc.setTextColor(80, 80, 80);
-  doc.text("THREATLY — Unified Cybersecurity Intelligence Platform | threatly-tawny.vercel.app", 15, 285);
+  doc.setFont("courier", "normal");
+  doc.setTextColor(...textWhite);
+  const truncatedInput = input.length > 180 ? input.slice(0, 180) + "..." : input;
+  const inputLines = doc.splitTextToSize(truncatedInput, colW);
+  doc.text(inputLines.slice(0, 2), rightX, y + 14);
 
-  doc.save(`THREATLY_Report_${result.classification}_${Date.now()}.pdf`);
+  // Metadata Grid
+  const metaY = y + 24;
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...textSubtle);
+  doc.text("SCAN TYPE:", rightX, metaY);
+  doc.setTextColor(...textWhite);
+  doc.text(scanType, rightX + 22, metaY);
+
+  doc.setTextColor(...textSubtle);
+  doc.text("CONFIDENCE:", rightX + 46, metaY);
+  doc.setTextColor(...cyanPrimary);
+  doc.text(`${(result.confidence * 100).toFixed(0)}%`, rightX + 68, metaY);
+
+  doc.setTextColor(...textSubtle);
+  doc.text("THREAT CATEGORY:", rightX, metaY + 6);
+  doc.setTextColor(244, 114, 182); // Pink accent
+  doc.text(result.threatCategory || "NONE DETECTED", rightX + 30, metaY + 6);
+
+  y += summaryCardHeight + 6;
+
+  // ─── CARD 2: Recommended Mitigation Action ───────────────────────
+  const recLines = doc.splitTextToSize(result.recommendedAction, contentW - 14);
+  const recCardHeight = 12 + recLines.length * 4.5;
+  checkPageBreak(recCardHeight);
+
+  doc.setFillColor(15, 27, 45); // Subtle cyan card tint
+  doc.setDrawColor(...cardBorder);
+  doc.roundedRect(M, y, contentW, recCardHeight, 2.5, 2.5, "FD");
+
+  // Left accent indicator strip
+  doc.setFillColor(...cyanPrimary);
+  doc.rect(M, y, 2.5, recCardHeight, "F");
+
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...cyanPrimary);
+  doc.text("RECOMMENDED MITIGATION ACTION", M + 7, y + 6);
+
+  doc.setFontSize(8.5);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...textWhite);
+  doc.text(recLines, M + 7, y + 11.5);
+
+  y += recCardHeight + 6;
+
+  // ─── CARD 3: Explainable Detection (Security Indicators) ──────────
+  if (result.indicators && result.indicators.length > 0) {
+    checkPageBreak(25);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...cyanPrimary);
+    doc.text("SECURITY INDICATORS (EXPLAINABLE DETECTION)", M, y);
+    y += 4;
+
+    result.indicators.forEach((ind) => {
+      const descLines = doc.splitTextToSize(ind.description, contentW - 32);
+      const indHeight = 10 + descLines.length * 4;
+      checkPageBreak(indHeight);
+
+      // Indicator item box
+      doc.setFillColor(14, 21, 37);
+      doc.setDrawColor(...cardBorder);
+      doc.roundedRect(M, y, contentW, indHeight, 2, 2, "FD");
+
+      // Severity badge
+      const isCritical = ind.severity === "CRITICAL" || ind.severity === "HIGH";
+      const isMed = ind.severity === "MEDIUM";
+      const sevBg: [number, number, number] = isCritical
+        ? [127, 29, 29]
+        : isMed
+        ? [120, 53, 15]
+        : [30, 41, 59];
+      const sevColor: [number, number, number] = isCritical
+        ? [248, 113, 113]
+        : isMed
+        ? [251, 191, 36]
+        : [148, 163, 184];
+
+      doc.setFillColor(...sevBg);
+      doc.roundedRect(M + 3, y + 3, 20, 4.5, 1, 1, "F");
+      doc.setFontSize(6.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...sevColor);
+      doc.text(ind.severity, M + 13, y + 6.2, { align: "center" });
+
+      // Indicator Name
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...textWhite);
+      doc.text(ind.name, M + 26, y + 6.5);
+
+      // Indicator Description
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...textMuted);
+      doc.text(descLines, M + 26, y + 11.5);
+
+      y += indHeight + 3;
+    });
+
+    y += 3;
+  }
+
+  // ─── CARD 4: Detection Findings (Reasons List) ────────────────────
+  if (result.reasons && result.reasons.length > 0) {
+    checkPageBreak(25);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...cyanPrimary);
+    doc.text("DETECTION FINDINGS & EVIDENCE", M, y);
+    y += 4;
+
+    const findingsHeight = 8 + result.reasons.length * 5;
+    checkPageBreak(findingsHeight);
+
+    doc.setFillColor(...cardBg);
+    doc.setDrawColor(...cardBorder);
+    doc.roundedRect(M, y, contentW, findingsHeight, 2.5, 2.5, "FD");
+
+    let findingY = y + 6;
+    result.reasons.forEach((reason) => {
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...cyanPrimary);
+      doc.text(">", M + 5, findingY);
+
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...textWhite);
+      const rLines = doc.splitTextToSize(reason, contentW - 16);
+      doc.text(rLines[0] || reason, M + 9, findingY);
+      findingY += 5;
+    });
+
+    y += findingsHeight + 6;
+  }
+
+  // ─── CARD 5: Threat Intelligence & Checks Performed ───────────────
+  const hasIntel =
+    result.domainReputation ||
+    result.domainAge ||
+    (result.checksPerformed && result.checksPerformed.length > 0) ||
+    (result.checksUnavailable && result.checksUnavailable.length > 0);
+
+  if (hasIntel) {
+    checkPageBreak(28);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...cyanPrimary);
+    doc.text("TELEMETRY & CHECKS AUDIT", M, y);
+    y += 4;
+
+    doc.setFillColor(...cardBg);
+    doc.setDrawColor(...cardBorder);
+    doc.roundedRect(M, y, contentW, 22, 2.5, 2.5, "FD");
+
+    // Grid item 1
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...textSubtle);
+    doc.text("DOMAIN REPUTATION:", M + 6, y + 6);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...textWhite);
+    doc.text(result.domainReputation || "Evaluation Not Applicable", M + 6, y + 10);
+
+    // Grid item 2
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...textSubtle);
+    doc.text("DOMAIN AGE:", M + 96, y + 6);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...textWhite);
+    doc.text(result.domainAge || "Evaluation Not Applicable", M + 96, y + 10);
+
+    // Checks summary line
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(52, 211, 153); // Emerald
+    const performedTxt = `Checks Performed: ${result.checksPerformed?.join(", ") || "Heuristic Analysis"}`;
+    doc.text(performedTxt.slice(0, 110), M + 6, y + 16);
+
+    if (result.checksUnavailable && result.checksUnavailable.length > 0) {
+      doc.setFontSize(6.5);
+      doc.setTextColor(251, 191, 36); // Amber
+      const unavailTxt = `Checks Unavailable: ${result.checksUnavailable.join(", ")}`;
+      doc.text(unavailTxt.slice(0, 110), M + 6, y + 19.5);
+    }
+
+    y += 26;
+  }
+
+  // Save the professional PDF
+  const safeFilename = `THREATLY_Security_Report_${result.classification}_${Date.now()}.pdf`;
+  doc.save(safeFilename);
 }
 
 // ─── Verdict Badge ────────────────────────────────────────────────────────────
