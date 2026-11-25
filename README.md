@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/Akulverma2/THREATLY/actions"><img src="https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge" alt="Build"/></a>
-  <a href="#"><img src="https://img.shields.io/badge/Tests-67%2F67%20Passing-success?style=for-the-badge" alt="Tests"/></a>
+  <a href="#"><img src="https://img.shields.io/badge/Tests-81%2F81%20Passing-success?style=for-the-badge" alt="Tests"/></a>
   <a href="https://nextjs.org/"><img src="https://img.shields.io/badge/Next.js-16.4.6-black?style=for-the-badge&logo=next.js" alt="Next.js"/></a>
   <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19.3.0-61DAFB?style=for-the-badge&logo=react" alt="React"/></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5.9.3-3178C6?style=for-the-badge&logo=typescript" alt="TypeScript"/></a>
@@ -29,7 +29,8 @@
 | Feature | Description |
 |---------|-------------|
 | 🔗 **URL Scanner** | Deep link analysis — domain age, redirect chains, SSL/TLS validation, homograph spoofing, TLD risk, IP routing |
-| 📷 **QR Code Scanner** | Camera capture + file upload — decodes payloads, extracts embedded URLs, runs full URL heuristics |
+| 📷 **QR Code Scanner** | Camera capture + file upload — decodes PNG/JPEG/WEBP/TIFF/HEIF/GIF, runs URL heuristics, **recognises UPI payment QR codes** |
+| 💳 **UPI Payment QR Detection** | Extracts and validates UPI payment metadata, checks for phishing/injection, displays structured payment details with safety disclaimer |
 | 💬 **Message Scanner** | SMS/chat analysis — urgency cues, OTP harvesting, prize fraud, smishing patterns, shortened links |
 | 📧 **Email Forensics** | SPF/DKIM/DMARC alignment, sender spoofing, BEC detection, credential harvesting, header inspection |
 | 🎯 **Threat Risk Gauge** | Animated 0–100 circular score gauge with SAFE / SUSPICIOUS / MALICIOUS classification and color-coded arcs |
@@ -50,6 +51,68 @@
 
 ---
 
+## 💳 UPI Payment QR Detection
+
+THREATLY recognises **UPI (Unified Payments Interface) payment QR codes**, including those produced by Google Pay, PhonePe, Paytm, and any other UPI-compliant application.
+
+### Recognised QR format
+
+```
+upi://pay?pa=merchant@okaxis&pn=Example%20Store&am=500&cu=INR&mc=5411&tr=TXN001&tn=Coffee
+```
+
+### Extracted payment fields
+
+| Parameter | Field | Description |
+|-----------|-------|-------------|
+| `pa` | Payee UPI ID | Virtual Payment Address — mandatory |
+| `pn` | Payee Name | Display name of the recipient |
+| `am` | Amount | Requested payment amount |
+| `cu` | Currency | Currency code (should be `INR`) |
+| `mc` | Merchant Category Code | MCC of the merchant |
+| `tr` | Transaction Reference | Merchant-defined reference ID |
+| `tn` | Transaction Note | Description / remark |
+| `mode` | Payment Mode | Preferred payment mode hint |
+| `orgid` | Organization ID | App-defined organization identifier |
+
+All extracted values are sanitised (HTML/script injection characters stripped) before display.
+
+### Security checks performed
+
+| Check | Description |
+|-------|-------------|
+| URI structure validation | Ensures the URI is a parseable `upi://pay` URI |
+| Payee address format | Validates UPI ID against `localpart@handle` pattern |
+| Amount validation | Detects non-numeric, negative, or unusually large amounts |
+| Currency check | Flags non-INR currency (UPI is INR-only) |
+| External URL detection | Flags any `http://` / `https://` URLs embedded in parameters |
+| Script injection scan | Detects `<script>`, `javascript:`, `on*=` injection attempts |
+| Phishing keyword scan | Detects scam-associated terms in payee name (KYC, lottery, refund, etc.) |
+
+### Google Pay identification — limitations
+
+THREATLY identifies a QR code as **Google Pay** **only** when the `orgid` parameter explicitly equals `gpay`.
+
+> **THREATLY never infers the payment application from the UPI ID suffix** (e.g. `@okaxis`, `@oksbi`, `@okhdfcbank`, `@okicici`). These suffixes indicate the beneficiary bank or handle provider — not the scanning application. Many non-Google-Pay QR codes use these handles.
+
+If `orgid` is absent or does not equal `gpay`, the detected app is displayed as:
+
+> **UPI QR — payment app not independently verified**
+
+### What THREATLY does not do
+
+- ❌ Does not initiate, authorise, or execute any UPI payment
+- ❌ Does not display a "Pay" button or any payment UI
+- ❌ Does not request or collect a UPI PIN, OTP, or banking password
+- ❌ Does not guarantee the recipient's identity or payment safety
+- ❌ Does not store the full UPI URI in the database (stored as `[QR image]`)
+
+A mandatory safety disclaimer is always displayed when a UPI QR is detected:
+
+> *THREATLY only analyses the QR code. It does not verify the recipient's identity or guarantee that a payment is safe. Never enter your UPI PIN to receive money.*
+
+---
+
 ## 🏗️ Technology Stack
 
 | Layer | Technology |
@@ -62,6 +125,7 @@
 | Auth | Auth.js (NextAuth v5), JWT sessions |
 | Database | Prisma ORM + Neon PostgreSQL (serverless) |
 | Testing | Vitest 3.x |
+| QR Decoding | jsQR + sharp (multi-format: PNG/JPEG/WEBP/TIFF/HEIF/GIF) |
 | Deployment | Vercel |
 
 ---
@@ -79,7 +143,7 @@ src/
 │   ├── scanner/page.tsx      # Public scanner
 │   └── api/
 │       ├── scan/url/         # URL heuristic engine
-│       ├── scan/qr/          # QR decode + analysis
+│       ├── scan/qr/          # QR decode + UPI/URL analysis
 │       ├── scan/message/     # Smishing detection
 │       ├── scan/email/       # Email forensics
 │       ├── user/me/          # User profile
@@ -87,15 +151,16 @@ src/
 │       ├── public/stats/     # Anonymized telemetry
 │       └── admin/            # Admin-only endpoints
 ├── components/
-│   ├── ScannerTabs.tsx       # Full scanner UI + result card
+│   ├── ScannerTabs.tsx       # Full scanner UI + result card + UPI panel
 │   ├── ThreatRadar.tsx       # Live threat radar visualization
 │   └── VoiceAssistant.tsx    # AI voice feedback
 └── lib/
     ├── auth.ts               # Auth.js configuration
     ├── prisma.ts             # Database client
     └── detection/
+        ├── base.ts           # Shared types (DetectionResult, UpiPaymentInfo)
         ├── url.ts            # URL heuristics
-        ├── qr.ts             # QR analysis
+        ├── qr.ts             # QR decode + UPI + URL analysis
         ├── message.ts        # Message analysis
         └── email.ts          # Email forensics
 ```
@@ -167,7 +232,7 @@ npm run lint
 npm run build
 ```
 
-All 67 tests pass across detection engines, API route handlers, and utility functions.
+All 81 tests pass across detection engines, API route handlers, and utility functions.
 
 ---
 
@@ -181,6 +246,7 @@ All 67 tests pass across detection engines, API route handlers, and utility func
 - **Rate Limiting**: Per-IP rate limiting on all scan endpoints
 - **Input Validation**: Zod schemas on all API inputs
 - **Data Isolation**: Users can only access their own scan data
+- **UPI Safety**: Extracted UPI parameters are sanitised; no payment actions are ever executed
 
 ---
 

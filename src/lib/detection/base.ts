@@ -1,5 +1,36 @@
 export type Classification = "SAFE" | "SUSPICIOUS" | "MALICIOUS";
 
+// ─── UPI Payment Info ─────────────────────────────────────────────────────────
+export interface UpiPaymentInfo {
+  /** pa — Payee UPI Virtual Payment Address */
+  payeeId: string | null;
+  /** pn — Payee display name (URL-decoded) */
+  payeeName: string | null;
+  /** am — Payment amount (string, unvalidated) */
+  amount: string | null;
+  /** cu — Currency code (should be "INR") */
+  currency: string | null;
+  /** mc — Merchant Category Code */
+  merchantCategoryCode: string | null;
+  /** tr — Transaction reference */
+  transactionRef: string | null;
+  /** tn — Transaction note / description */
+  transactionNote: string | null;
+  /** mode — Payment mode hint */
+  mode: string | null;
+  /** orgid — Organization identifier (e.g. "gpay") */
+  orgId: string | null;
+  /**
+   * Human-readable label for the detected payment application.
+   * Set to "Google Pay" ONLY when orgid explicitly indicates GPay.
+   * Otherwise "UPI QR — payment app not independently verified".
+   * Never inferred from UPI ID suffix alone.
+   */
+  detectedApp: string;
+  /** Original decoded UPI URI (sanitised — no executable chars) */
+  rawUri: string;
+}
+
 export type Severity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
 export interface Indicator {
@@ -32,6 +63,8 @@ export interface DetectionResult {
   domainReputation?: string | null;
   redirectChain?: string[];
   suspiciousIndicators?: string[];
+  /** Present only when the QR payload is a UPI payment URI */
+  upiInfo?: UpiPaymentInfo | null;
 }
 
 export function classifyScore(score: number): Classification {
@@ -81,5 +114,6 @@ export function makeResult(partial: Partial<DetectionResult> & { riskScore: numb
     domainReputation: partial.domainReputation ?? null,
     redirectChain: partial.redirectChain ?? [],
     suspiciousIndicators: partial.suspiciousIndicators ?? [],
+    upiInfo: partial.upiInfo ?? null,
   };
 }

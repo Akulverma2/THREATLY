@@ -22,6 +22,20 @@ export interface ScanResult {
   domainReputation?: string | null;
   redirectChain?: string[];
   suspiciousIndicators?: string[];
+  // UPI payment QR fields
+  upiInfo?: {
+    payeeId: string | null;
+    payeeName: string | null;
+    amount: string | null;
+    currency: string | null;
+    merchantCategoryCode: string | null;
+    transactionRef: string | null;
+    transactionNote: string | null;
+    mode: string | null;
+    orgId: string | null;
+    detectedApp: string;
+    rawUri: string;
+  } | null;
 }
 
 // ─── Risk Score Gauge ────────────────────────────────────────────────────────
@@ -67,6 +81,73 @@ function RiskGauge({ score, classification }: { score: number; classification: s
       >
         {classification}
       </span>
+    </div>
+  );
+}
+
+// ─── UPI Payment Panel ────────────────────────────────────────────────────────
+function UpiPaymentPanel({ upi }: { upi: NonNullable<ScanResult["upiInfo"]> }) {
+  type FieldRow = { label: string; value: string | null; mono?: boolean };
+  const fields: FieldRow[] = [
+    { label: "Payment App",          value: upi.detectedApp },
+    { label: "Payee Name",           value: upi.payeeName },
+    { label: "Payee UPI ID",         value: upi.payeeId,  mono: true },
+    { label: "Amount",               value: upi.amount ? `${upi.currency ?? "INR"} ${upi.amount}` : null },
+    { label: "Currency",             value: upi.currency },
+    { label: "Merchant Category",    value: upi.merchantCategoryCode },
+    { label: "Transaction Ref",      value: upi.transactionRef, mono: true },
+    { label: "Transaction Note",     value: upi.transactionNote },
+    { label: "Mode",                 value: upi.mode },
+    { label: "Org ID",               value: upi.orgId, mono: true },
+  ].filter(f => f.value !== null && f.value !== "");
+
+  return (
+    <div className="space-y-3">
+      <h4 className="text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2">
+        <span>💳</span> UPI Payment Details
+      </h4>
+
+      {/* QR type badge */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30">
+          QR Type: UPI Payment QR
+        </span>
+        {upi.detectedApp === "Google Pay" && (
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/15 text-blue-300 border border-blue-500/30">
+            Google Pay (orgid verified)
+          </span>
+        )}
+      </div>
+
+      {/* Fields grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {fields.map(f => (
+          <div key={f.label} className="p-2.5 rounded-lg bg-black/40 border border-white/5">
+            <p className="text-[9px] text-gray-500 uppercase tracking-wider font-mono mb-0.5">{f.label}</p>
+            <p className={`text-sm font-semibold text-cyan-200 break-all ${f.mono ? "font-mono" : ""}`}>
+              {f.value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Mandatory safety disclaimer — always shown */}
+      <div
+        role="alert"
+        className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-xs leading-relaxed"
+      >
+        <span className="text-lg shrink-0">⚠️</span>
+        <p>
+          <strong className="font-bold text-amber-100">Important: </strong>
+          THREATLY only analyses the QR code. It does&nbsp;not verify the recipient&apos;s identity
+          or guarantee that a payment is safe.{" "}
+          <strong className="font-bold text-amber-100">
+            Never enter your UPI&nbsp;PIN to receive money.
+          </strong>{" "}
+          Always confirm the payee details with the merchant through an independent channel before
+          authorising any payment.
+        </p>
+      </div>
     </div>
   );
 }
@@ -691,6 +772,11 @@ function ResultCard({ result, scanType, input }: { result: ScanResult; scanType:
           {/* Intel Panel */}
           <ThreatIntelPanel result={result} />
         </div>
+
+        {/* UPI Payment Panel — only when payload is a UPI QR */}
+        {result.threatCategory === "UPI_PAYMENT_QR" && result.upiInfo && (
+          <UpiPaymentPanel upi={result.upiInfo} />
+        )}
 
         {/* Explainable Detection */}
         <ExplainableDetection result={result} />
